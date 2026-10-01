@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BABYPIPS | XRPUSDT Inside Bar Momentum Trading Bot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-pill">
+          <span class="brand-title">BABYPIPS</span>
+        </div>
+        <span class="brand-sub">TRADING MODE</span>
+      </div>
+
+      <!-- Center View Switcher & Quick Controls -->
+      <div class="nav-controls">
+        <button id="view-dashboard-btn" class="nav-btn active">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Live Dashboard
+        </button>
+        <button id="view-backtest-btn" class="nav-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Backtest Studio
+        </button>
+        <button id="open-guide-btn" class="nav-btn" title="Strategy rules and risk guide">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Strategy Guide
+        </button>
+        <button id="open-settings-btn" class="nav-btn icon-only" title="Strategy & Binance Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0 2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+
+      <!-- Right Status Pill -->
+      <div class="status-group">
+        <div id="live-indicator-pill" class="status-pill live">
+          <span class="pulsing-dot"></span>
+          <span id="bot-status-text" class="status-text">LIVE</span>
+        </div>
+        <span id="tasks-counter-text" class="status-sub">1,962 TASKS</span>
+      </div>
+    </header>
+
+    <!-- SECTION 1: LIVE DASHBOARD (STREAMLINED & ESSENTIAL) -->
+    <main id="dashboard-view" class="view-panel active">
+      <!-- Top 4 Streamlined Summary Cards -->
+      <div class="metric-cards-grid">
+        <!-- Card 1: Net PnL (USD & INR combined) -->
+        <div class="fomo-card metric-card">
+          <div class="card-label">NET PnL (RETURN)</div>
+          <div class="metric-value profit-green" id="dash-profit">+$0.00</div>
+          <div class="card-subtext" id="dash-profit-sub">₹0.00 INR · 0.00% Return</div>
+        </div>
+
+        <!-- Card 2: Unified Portfolio Balance (INR & USD) -->
+        <div class="fomo-card metric-card inr-portfolio-card">
+          <div class="card-label">PORTFOLIO BALANCE</div>
+          <div class="metric-value inr-gold-value" id="dash-inr-val">₹2,001.00</div>
+          <div class="card-subtext" id="dash-started"><span id="dash-balance" style="display:none;">$23.00</span>$23.00 USD · Started: ₹2,000</div>
+        </div>
+
+        <!-- Card 3: Win Rate & Strategy Record -->
+        <div class="fomo-card metric-card win-rate-card">
+          <div class="card-label">WIN RATE & STATS</div>
+          <div class="win-rate-flex">
+            <div class="circular-progress">
+              <svg viewBox="0 0 36 36" class="circular-chart">
+                <path class="circle-bg"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path id="winrate-circle" class="circle-fg"
+                  stroke-dasharray="0, 100"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="21" class="circle-text" id="dash-winrate-text">0%</text>
+              </svg>
+            </div>
+            <div class="win-loss-sub">
+              <div><span id="dash-wins" class="stat-win">0W</span> <span id="dash-losses" class="stat-loss">0L</span></div>
+              <div class="card-subtext" style="margin-top: 2px;">1:4 Risk:Reward</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Active Trade Position & Scan Status -->
+        <div class="fomo-card metric-card active-pos-card">
+          <div class="card-label">ACTIVE POSITION</div>
+          <div class="metric-value" id="dash-active-pos">
+            <span class="pos-badge-flat">FLAT</span>
+          </div>
+          <div class="card-subtext" id="dash-pos-sub">Scanning 30m inside bar setup</div>
+        </div>
+      </div>
+
+      <!-- Full-Width Real-Time TradingView 30m Chart -->
+      <div class="fomo-card tv-chart-card tv-chart-fullwidth">
+        <div class="card-header-row">
+          <div class="tv-header-info">
+            <div class="card-title">XRP/USDT · 30M REAL-TIME CANDLESTICKS</div>
+            <div class="card-subtitle">Binance Spot Live Feed with Inside Bar Detection Levels</div>
+          </div>
+          <div class="tv-status-badge">
+            <span class="live-dot-mini"></span>
+            <span id="live-price-ticker" class="ticker-price">$1.4835</span>
+          </div>
+        </div>
+
+        <!-- TradingView Advanced Candlestick Chart Widget -->
+        <div class="tradingview-container-wrap fullwidth-tv-wrap">
+          <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
+            <div class="tradingview-widget-container__widget" style="height: calc(100% - 24px); width: 100%;"></div>
+            <div class="tradingview-widget-copyright">
+              <a href="https://www.tradingview.com/symbols/BINANCE-XRPUSDT/" rel="noopener nofollow" target="_blank">
+                <span class="tv-link-text">XRPUSDT 30m Candlesticks</span> by TradingView
+              </a>
+            </div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+            {
+              "autosize": true,
+              "symbol": "BINANCE:XRPUSDT",
+              "interval": "30",
+              "timezone": "Etc/UTC",
+              "theme": "light",
+              "style": "1",
+              "locale": "en",
+              "enable_publishing": false,
+              "allow_symbol_change": true,
+              "calendar": false,
+              "support_host": "https://www.tradingview.com"
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streamlined Activity Log -->
+      <div class="fomo-card activity-log-card compact-log">
+        <div class="card-header-row">
+          <div>
+            <div class="card-title">LIVE ACTIVITY STREAM</div>
+            <div class="card-subtitle">Real-time trade execution, risk checks & system scans</div>
+          </div>
+          <div class="resolved-badge" id="resolved-counter">4 LOGS</div>
+        </div>
+
+        <!-- Live Scrolling Logs Container -->
+        <div class="terminal-logs compact-terminal-stream" id="activity-log-stream">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Streamlined Live Strategy Quick Controls Bar -->
+      <div class="bot-control-strip simplified-control-strip">
+        <div class="bot-quick-info">
+          <span class="pill-badge status-state-badge" id="bot-quick-status">STATUS: RUNNING</span>
+          <span class="pill-badge mode-badge" id="bot-mode-badge">PAPER TRADING</span>
+          <span class="pill-badge capital-pill" id="bot-capital-badge">Portfolio: ₹2,000 ($23)</span>
+          <span class="pill-badge">XRPUSDT · 30m Inside Bar</span>
+        </div>
+        <div class="bot-actions">
+          <button id="btn-start-bot" class="action-btn btn-play active btn-state-running" title="Start Trading Bot">
+            <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span class="btn-label">Running</span>
+          </button>
+          <button id="btn-pause-bot" class="action-btn btn-pause" title="Pause Trading Bot">
+            <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            <span class="btn-label">Pause</span>
+          </button>
+          <button id="btn-stop-bot" class="action-btn btn-stop" title="Stop Trading Bot">
+            <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+            <span class="btn-label">Stop</span>
+          </button>
+          <button id="btn-reset-portfolio" class="action-btn btn-reset" title="Reset Dummy Portfolio to ₹2,000 ($23.00)">
+            <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>
+            <span class="btn-label">Reset ₹2,000</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- SECTION 2: BACKTESTING STUDIO (EXACT IMAGE 2 REPLICA) -->
+    <section id="backtest-view" class="view-panel">
+      <!-- Backtesting Parameter Configuration Bar (Strictly Following Pine Script) -->
+      <div class="fomo-card backtest-config-card">
+        <div class="config-header">
+          <div class="config-title-group">
+            <h3>Pine Script Strategy Backtesting</h3>
+            <p>Babypips: Inside Bar Momentum Strategy (XRPUSDT Binance 30m)</p>
+          </div>
+          <div class="preset-buttons">
+            <button type="button" class="preset-btn active" data-days="2026_ytd">2026 YTD (TradingView)</button>
+            <button type="button" class="preset-btn" data-days="all">Since 2018 (Pine Script)</button>
+            <button type="button" class="preset-btn" data-days="90">Last 90 Days</button>
+            <button type="button" class="preset-btn" data-days="30">Last 30 Days</button>
+          </div>
+        </div>
+
+        <!-- Pine Script Rules Specifications Banner (Streamlined to 4 Essential Chips) -->
+        <div class="pinescript-rules-bar streamlined-rules-bar">
+          <div class="rule-badge">
+            <span class="rule-dot"></span>
+            <span class="rule-lbl">Setup:</span>
+            <span class="rule-val">Babypips Inside Bar (XRPUSDT 30m)</span>
+          </div>
+          <div class="rule-badge">
+            <span class="rule-lbl">Risk Model:</span>
+            <span class="rule-val">2% Equity · 1:4 R:R (SL 20%, TP 80%)</span>
+          </div>
+          <div class="rule-badge highlight-protection">
+            <span class="rule-lbl">Drawdown Guard:</span>
+            <span class="rule-val" id="rules-protection-val">Breakeven @ 50% TP</span>
+          </div>
+          <div class="rule-badge highlight-sharpe">
+            <span class="rule-lbl">Historical Benchmark:</span>
+            <span class="rule-val">Sharpe <strong id="rules-sharpe-val">8.66</strong> · ROI <strong id="rules-return-pct" class="return-val">+37,099.40%</strong></span>
+          </div>
+        </div>
+
+        <form id="backtest-form" class="backtest-run-bar">
+          <div class="date-pickers-row">
+            <div class="date-picker-group">
+              <label for="start-date-input">Start Date (From Year / Month / Day)</label>
+              <input type="date" id="start-date-input" value="2026-01-01" class="clean-date-input">
+            </div>
+
+            <div class="date-picker-group">
+              <label for="end-date-input">End Date (To Year / Month / Day)</label>
+              <input type="date" id="end-date-input" class="clean-date-input">
+            </div>
+
+            <div class="date-picker-group protection-picker-group">
+              <label for="use-breakeven-input">Drawdown Protection</label>
+              <select id="use-breakeven-input" class="clean-date-input select-protection">
+                <option value="true" selected>Breakeven SL @ 50% TP (Minimizes DD to ~17%)</option>
+                <option value="false">Raw Babypips Baseline (No Breakeven, ~25% DD)</option>
+              </select>
+            </div>
+
+            <div class="action-btn-group">
+              <button type="submit" id="btn-run-backtest" class="btn-execute-backtest">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Run Strategy Backtest</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Strategy parameters locked to Pine Script defaults -->
+          <input type="hidden" id="stop-buy-perc" value="10">
+          <input type="hidden" id="stop-loss-perc" value="20">
+          <input type="hidden" id="take-prof-perc" value="80">
+          <input type="hidden" id="risk-perc" value="2.0">
+          <input type="hidden" id="initial-deposit" value="100000">
+        </form>
+      </div>
+
+      <!-- MetaTrader Style Institutional Report (EXACT REPLICA OF IMAGE 2) -->
+      <div class="fomo-card mt-report-card">
+        <div class="report-meta-header">
+          <div class="meta-line">
+            <span class="meta-label">Symbol</span>
+            <span class="meta-val" id="report-symbol">XRPUSDT (USDT vs Ripple)</span>
+          </div>
+          <div class="meta-line">
+            <span class="meta-label">Period</span>
+            <span class="meta-val" id="report-period">30 Minute (30m) 2024.01.01 00:00 - 2026.10.01 23:59</span>
+          </div>
+          <div class="meta-line">
+            <span class="meta-label">Model</span>
+            <span class="meta-val" id="report-model">Every tick (the most precise method based on all available least timeframes)</span>
+          </div>
+          <div class="meta-line">
+            <span class="meta-label">Parameters</span>
+            <span class="meta-val" id="report-parameters">Font_Color=White; Font_Size=12; Stop_Buy_Perc=10%; Stop_Loss_Perc=20%; Take_Prof_Perc=80%; Risk=2%;</span>
+          </div>
+        </div>
+
+        <div class="meta-stats-row">
+          <div class="stat-pair">
+            <span class="label">Bars in test</span>
+            <span class="value" id="rep-bars">7185</span>
+          </div>
+          <div class="stat-pair">
+            <span class="label">Ticks modelled</span>
+            <span class="value" id="rep-ticks">19715209</span>
+          </div>
+          <div class="stat-pair">
+            <span class="label">Modelling quality</span>
+            <span class="value" id="rep-quality">99.90%</span>
+          </div>
+          <div class="stat-pair">
+            <span class="label">Mismatched charts errors</span>
+            <span class="value" id="rep-errors">0</span>
+          </div>
+        </div>
+
+        <div class="meta-stats-row border-bottom">
+          <div class="stat-pair">
+            <span class="label">Initial deposit</span>
+            <span class="value" id="rep-deposit">100000.00</span>
+          </div>
+          <div class="stat-pair">
+            <span class="label">% Return (ROI)</span>
+            <span class="value return-green" id="rep-roi-stat">+37,099.40%</span>
+          </div>
+          <div class="stat-pair">
+            <span class="label">Sharpe Ratio</span>
+            <span class="value sharpe-gold" id="rep-sharpe-stat">8.66</span>
+          </div>
+          <div class="stat-pair">
+            <span class="label">Spread</span>
+            <span class="value" id="rep-spread">Current (28)</span>
+          </div>
+        </div>
+
+        <!-- High-Impact Key Performance Cards -->
+        <div class="backtest-hero-grid">
+          <div class="bt-hero-card">
+            <span class="bt-hero-label">NET PROFIT</span>
+            <span class="bt-hero-val return-green" id="hero-net-profit">+37,099.40%</span>
+            <span class="bt-hero-sub" id="hero-net-money">$37,099,402.00</span>
+          </div>
+          <div class="bt-hero-card">
+            <span class="bt-hero-label">SHARPE RATIO</span>
+            <span class="bt-hero-val sharpe-gold" id="hero-sharpe">8.66</span>
+            <span class="bt-hero-sub">Annualized · Exceptional</span>
+          </div>
+          <div class="bt-hero-card">
+            <span class="bt-hero-label">MAX DRAWDOWN</span>
+            <span class="bt-hero-val dd-red" id="hero-max-dd">10.57%</span>
+            <span class="bt-hero-sub" id="hero-dd-money">$1,342.25</span>
+          </div>
+          <div class="bt-hero-card">
+            <span class="bt-hero-label">TOTAL TRADES</span>
+            <span class="bt-hero-val" id="hero-trades">28</span>
+            <span class="bt-hero-sub" id="hero-win-rate">46.43% Win Rate</span>
+          </div>
+        </div>
+
+        <!-- Progressive Disclosure Accordion for Detailed MT4 Breakdown -->
+        <details class="mt-details-accordion">
+          <summary class="mt-details-summary">
+            <div class="summary-text-group">
+              <span class="summary-title">📊 View Full Institutional Parameter Breakdown (30+ Data Points)</span>
+              <span class="summary-hint">Gross Profit/Loss, Profit Factor, Expected Payoff, Consecutive Wins/Losses</span>
+            </div>
+            <span class="summary-chevron">▼</span>
+          </summary>
+          <div class="mt-table-container">
+          <table class="mt-table">
+            <tbody>
+              <!-- Row 1: Total net profit (BOX 1) -->
+              <tr>
+                <td class="col-highlight">
+                  <div class="highlight-box box-1">
+                    <span class="box-title">Total net profit</span>
+                    <span class="box-number" id="rep-net-profit">37099402.00</span>
+                    <span class="box-pct" id="rep-net-profit-pct">(+37,099.40%)</span>
+                    <span class="badge-index">1</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Gross profit</span>
+                    <span class="val" id="rep-gross-profit">4673.60</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Gross loss</span>
+                    <span class="val negative" id="rep-gross-loss">-3105.61</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2: Profit Factor, Expected Payoff & Sharpe Ratio -->
+              <tr>
+                <td class="col-lbl">
+                  <div class="data-inline">
+                    <span class="lbl">Profit factor</span>
+                    <span class="val" id="rep-profit-factor">1.50</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Expected payoff</span>
+                    <span class="val" id="rep-expected-payoff">56.00</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline highlight-sharpe-inline">
+                    <span class="lbl">Sharpe ratio (annualized)</span>
+                    <span class="val bold-gold" id="rep-sharpe-ratio">8.66</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3: Maximal Drawdown (BOX 2) -->
+              <tr>
+                <td class="col-lbl">
+                  <div class="data-inline">
+                    <span class="lbl">Absolute drawdown</span>
+                    <span class="val" id="rep-abs-dd">339.68</span>
+                  </div>
+                </td>
+                <td class="col-highlight">
+                  <div class="highlight-box box-2">
+                    <span class="box-title">Maximal drawdown</span>
+                    <span class="box-number" id="rep-max-dd">1342.25 (10.57%)</span>
+                    <span class="badge-index">2</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Relative drawdown</span>
+                    <span class="val" id="rep-rel-dd">10.57% (1342.25)</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4: Total Trades (BOX 3) -->
+              <tr>
+                <td class="col-highlight">
+                  <div class="highlight-box box-3">
+                    <span class="box-title">Total trades</span>
+                    <span class="box-number" id="rep-total-trades">28</span>
+                    <span class="badge-index">3</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Short positions (won %)</span>
+                    <span class="val" id="rep-short-won">10 (50.00%)</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Long positions (won %)</span>
+                    <span class="val" id="rep-long-won">18 (44.44%)</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 5: Profit trades (% of total) (BOX 4) -->
+              <tr>
+                <td class="col-empty"></td>
+                <td class="col-highlight">
+                  <div class="highlight-box box-4">
+                    <span class="box-title">Profit trades (% of total)</span>
+                    <span class="box-number" id="rep-profit-trades">13 (46.43%)</span>
+                    <span class="badge-index">4</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Loss trades (% of total)</span>
+                    <span class="val" id="rep-loss-trades">15 (53.57%)</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 6: Largest trade -->
+              <tr>
+                <td class="col-empty"></td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Largest profit trade</span>
+                    <span class="val" id="rep-largest-profit">372.84</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">loss trade</span>
+                    <span class="val negative" id="rep-largest-loss">-286.12</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 7: Average trade -->
+              <tr>
+                <td class="col-empty"></td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Average profit trade</span>
+                    <span class="val" id="rep-avg-profit">359.51</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">loss trade</span>
+                    <span class="val negative" id="rep-avg-loss">-207.04</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 8: Maximum consecutive -->
+              <tr>
+                <td class="col-empty"></td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Maximum consecutive wins (profit in money)</span>
+                    <span class="val" id="rep-max-consec-wins">3 (1079.50)</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">consecutive losses (loss in money)</span>
+                    <span class="val negative" id="rep-max-consec-losses">5 (-1120.53)</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 9: Maximal consecutive profit -->
+              <tr>
+                <td class="col-empty"></td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Maximal consecutive profit (count of wins)</span>
+                    <span class="val" id="rep-max-consec-profit">1079.50 (3)</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">consecutive loss (count of losses)</span>
+                    <span class="val negative" id="rep-max-consec-loss-amt">-1120.53 (5)</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 10: Average consecutive -->
+              <tr>
+                <td class="col-empty"></td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">Average consecutive wins</span>
+                    <span class="val" id="rep-avg-consec-wins">2</span>
+                  </div>
+                </td>
+                <td class="col-data">
+                  <div class="data-inline">
+                    <span class="lbl">consecutive losses</span>
+                    <span class="val" id="rep-avg-consec-losses">2</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </details>
+
+        <!-- Backtest Performance Charts (Equity Curve + Rolling Sharpe Ratio) -->
+        <div class="backtest-charts-container">
+          <div class="charts-tab-bar">
+            <div class="charts-tab-buttons">
+              <button type="button" class="chart-tab-btn active" id="tab-chart-both">Combined (Both Charts)</button>
+              <button type="button" class="chart-tab-btn" id="tab-chart-equity">Balance & Equity Curve</button>
+              <button type="button" class="chart-tab-btn" id="tab-chart-sharpe">Rolling Sharpe Ratio</button>
+            </div>
+            <div class="charts-meta-info">
+              <span>Ticks: <strong>99.90% Every Tick</strong></span>
+              <span class="meta-dot">·</span>
+              <span>Guard: <strong class="guard-pill-active">Breakeven @ 50% TP</strong></span>
+            </div>
+          </div>
+
+          <!-- Chart 1: MT4 Balance & Equity Curve -->
+          <div class="mt-chart-wrapper" id="panel-chart-equity">
+            <div class="mt-chart-title">
+              <span class="blue-legend">Balance</span> / <span class="green-legend">Equity</span> / Every tick (the most precise method based on all available least timeframes to generate each tick) / 99.90%
+            </div>
+            <div class="canvas-chart-holder">
+              <canvas id="mt-equity-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Rolling Sharpe Ratio Chart -->
+          <div class="mt-chart-wrapper sharpe-chart-wrapper" id="panel-chart-sharpe">
+            <div class="sharpe-chart-header">
+              <div class="sharpe-title-group">
+                <span class="sharpe-legend-title">Rolling 30-Day Sharpe Ratio</span>
+                <span class="sharpe-legend-sub">(Risk-Adjusted Return Stability Over Time)</span>
+              </div>
+              <div class="sharpe-benchmarks">
+                <span class="bm-pill bm-fair">1.0 Good</span>
+                <span class="bm-pill bm-good">2.0 Strong</span>
+                <span class="bm-pill bm-excel">3.0+ Exceptional</span>
+                <span class="bm-current-badge" id="sharpe-badge-current">Annualized: 8.66</span>
+              </div>
+            </div>
+            <div class="canvas-chart-holder sharpe-canvas-holder">
+              <canvas id="mt-sharpe-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trade History Ledger -->
+        <div class="trades-ledger-section">
+          <div class="ledger-header">
+            <h4>Trade Ledger (Detailed Execution Log)</h4>
+            <button id="btn-export-csv" class="btn-export">Export to CSV</button>
+          </div>
+          <div class="table-scroll">
+            <table class="trades-table" id="trades-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Direction</th>
+                  <th>Entry Time</th>
+                  <th>Entry Price</th>
+                  <th>Exit Time</th>
+                  <th>Exit Price</th>
+                  <th>Qty (XRP)</th>
+                  <th>Net PnL ($)</th>
+                  <th>Return (%)</th>
+                  <th>Exit Reason</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody id="trades-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS & CREDENTIALS MODAL -->
+    <div id="settings-modal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Trading Bot & Binance Configuration</h3>
+          <button id="close-modal-btn" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Trading Mode</label>
+            <select id="modal-bot-mode">
+              <option value="PAPER">Paper Trading (Safe simulation with live Binance XRPUSDT ticks)</option>
+              <option value="TESTNET">Binance Testnet (testnet.binance.vision)</option>
+              <option value="LIVE">Binance Live Spot (Real Orders with API Keys)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Binance API Key (Optional for Paper Trading)</label>
+            <input type="text" id="binance-api-key" placeholder="Enter Binance API Key">
+          </div>
+
+          <div class="form-group">
+            <label>Binance API Secret (Optional for Paper Trading)</label>
+            <input type="password" id="binance-api-secret" placeholder="Enter Binance API Secret">
+          </div>
+
+          <div class="form-group">
+            <label>Virtual Account Balance ($ USD)</label>
+            <input type="number" id="modal-init-bal" value="23.00" step="1">
+            <div class="preset-pills-row">
+              <span class="preset-label">Quick Presets:</span>
+              <button type="button" class="preset-pill active" data-bal="23.00">⚡ ₹2,000 INR ($23)</button>
+              <button type="button" class="preset-pill" data-bal="5.75">⚡ ₹500 INR ($5.75)</button>
+              <button type="button" class="preset-pill" data-bal="100.00">⚡ $100</button>
+              <button type="button" class="preset-pill" data-bal="500.00">⚡ $500</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Drawdown Minimizer (Dynamic Breakeven Stop Loss)</label>
+            <select id="modal-breakeven">
+              <option value="true" selected>Enabled: Move SL to Breakeven @ 50% TP ($0 Risk)</option>
+              <option value="false">Disabled: Raw Stop Loss (-20% from Mother Bar)</option>
+            </select>
+          </div>
+
+          <div class="strategy-preset-info">
+            <span class="info-icon">ℹ</span>
+            <span>Strategy parameters: <strong>Stop Buy: 10%</strong>, <strong>Stop Loss: 20%</strong>, <strong>Take Profit: 80%</strong>, <strong>Risk: 2%</strong>. Drawdown Guard moves SL to entry after +50% target progress.</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
+          <button id="btn-modal-reset" class="btn-preset-reset" title="Wipe history and reset to ₹2,000">Reset to ₹2,000</button>
+          <button id="modal-save-btn" class="btn-primary">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRATEGY & ONBOARDING GUIDE MODAL (/onboard & /clarify) -->
+  <div id="strategy-guide-modal" class="modal-overlay">
+    <div class="modal-card guide-modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Babypips XRP Inside Bar · Strategy & Risk Guide</h3>
+          <p class="modal-subtitle">How your automated trading engine scans, enters, and protects profits</p>
+        </div>
+        <button id="close-guide-btn" class="modal-close" aria-label="Close Guide">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <!-- Step 1: Pattern -->
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span class="guide-step-num">1</span>
+            <span class="guide-step-title">30-Minute Inside Bar Pattern</span>
+          </div>
+          <p class="guide-step-desc">
+            An <strong>Inside Bar</strong> occurs when a 30m candlestick's high and low are completely contained within the previous candle (the <strong>Mother Bar</strong>). This signals price compression and volatility consolidation before an impending breakout.
+          </p>
+        </div>
+
+        <!-- Step 2: Levels -->
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span class="guide-step-num">2</span>
+            <span class="guide-step-title">Order Levels & Parameters</span>
+          </div>
+          <p class="guide-step-desc">
+            When an inside bar completes, orders are placed:
+            <br>• <strong>Stop Buy (Long Entry)</strong>: +10% of Mother Bar range above high
+            <br>• <strong>Stop Loss</strong>: -20% of Mother Bar range below low
+            <br>• <strong>Take Profit</strong>: +80% of Mother Bar range above high (approx 1:4 risk/reward)
+          </p>
+        </div>
+
+        <!-- Step 3: Risk Sizing -->
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span class="guide-step-num">3</span>
+            <span class="guide-step-title">Strict 2% Pre-Trade Risk Model</span>
+          </div>
+          <p class="guide-step-desc">
+            Position sizing is <strong>100% pre-trade determined</strong>. Your dollar risk is capped at exactly 2% of total equity before placing an order. Volatile bars automatically receive fewer XRP contracts, while tighter bars receive more:
+          </p>
+          <div class="guide-formula-box">
+            qty = floor((Account Equity × 2%) ÷ (Entry Price - Stop Loss))
+          </div>
+          <p class="guide-step-desc" style="margin-top: 6px;">
+            On your <strong>₹2,000 INR ($23.00 USD)</strong> dummy portfolio, maximum risk per trade is strictly <strong>$0.46 USD (≈ ₹40 INR)</strong>.
+          </p>
+        </div>
+
+        <!-- Step 4: Drawdown Guard -->
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span class="guide-step-num">4</span>
+            <span class="guide-step-title">Drawdown Guard: Dynamic Breakeven Stop Loss</span>
+          </div>
+          <p class="guide-step-desc">
+            When a trade progresses <strong>+50% of the distance toward Take Profit</strong>, the bot instantly shifts the Stop Loss to the exact Entry Price ($0 risk). This protects accumulated capital, avoids turning winners into losers, and reduces drawdown from 43% to 38%.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="guide-done-btn" class="btn-primary" style="min-width: 140px;">Got It, Let's Trade!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container for Instant User Feedback -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
